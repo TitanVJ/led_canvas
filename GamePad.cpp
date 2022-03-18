@@ -114,10 +114,10 @@ XINPUT_STATE Gamepad::GetState()
 	//place state in temporary variable and return 
 	XINPUT_STATE gamepadState;
 
-	ZeroMemory(&GamepadState, sizeof(XINPUT_STATE));
+	ZeroMemory(&gamepadState, sizeof(XINPUT_STATE));
 
 	//get state of the gamepad
-	XINPUTGETSTATE(gamePadIndex, &GamepadState);
+	XINPUTGETSTATE(gamePadIndex, &gamepadState);
 
 	return gamepadState;
 }
