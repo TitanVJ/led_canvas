@@ -1,35 +1,54 @@
 #include <iostream>
-#include "Gamepad.h"
+#include "controller.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <linux/joystick.h>
 
-using namespace std;
+//NOTE: does not use the controller class - 
+//I do not know the buttons and their names yet
+//When the inputs are tested, you can use that to get the proper enum classs
 
-int main() {
-    Gamepad test = Gamepad(1);
+int main(int argc, char* argv[]) {
+    const char* device;
+    int js;
+    struct js_event event;
+    struct axis_state axes[3] = { 0 };
+    int axis;
 
-    // A function to obtain input, called each frame
-    void GetGamepadInput()
+    //must change "device" or argument to location of controller
+    if (argc > 1)
+        device = argv[1];
+    else
+        //temp: change when running!
+        device = "/dev/input/js0";
+
+    js = open(device, O_RDONLY);
+
+    if (js == -1)
+        perror("Could not open joystick");
+
+    // This loop will exit if the controller is unplugged. 
+    while (read_event(js, &event) == 0)
     {
-        test.Update(); // Update the gamepad
-
-        if (test.GetButtonPressed(XButtons.A)) 
+        switch (event.type)
         {
-            cout << "a pressed";
+        case JS_EVENT_BUTTON:
+            printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
+            break;
+        case JS_EVENT_AXIS:
+            axis = get_axis_state(&event, axes);
+            if (axis < 3)
+                printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
+            break;
+        default:
+            /* Ignore init events. */
+            break;
         }
 
-        if (test.GetButtonDown(XButtons.X))
-        {
-            cout << "x pressed";
-        }
-        
-        if (test.GetButtonDown(XButtons.Y))
-        {
-            cout << "y pressed";
-        }
+        fflush(stdout);
+    }
 
-        if (test.GetButtonDown(XButtons.B))
-        {
-            cout << "B pressed";
-        }
-
-        test.RefreshState();
+    close(js);
+    return 0;
 }
