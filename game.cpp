@@ -1,20 +1,31 @@
-/*https://www.youtube.com/watch?v=8OK8_tHeCIA&t=1030s*/
+/* This game was done with the help of this video https://www.youtube.com/watch?v=8OK8_tHeCIA&t=1030s
+The logic of the game is taken from the video*/
 
 #include <iostream>
 #include <thread>
+#include <vector>
+#include <pthread.h>
+#include "game.hpp"
 
 using namespace std;
 
+// Display Screen Colors
+#define BLANK_BOARD_COLOR 0
+#define BORDER_COLOR 7
+static vector <int> TetrominoColor = {1, 2, 3, 4, 5, 6};
+
+// Tetromino Pieces
 static string tetromino [7];
-static int screenWidth = 12;
-static int screenHeight = 18;
-static char * screenBuffer = nullptr; // actual final data
-static char * displayScreen = nullptr;
+
+// Boards
+static vector <int> screenBuffer(SCREEN_HEIGHT*SCREEN_WIDTH, BLANK_BOARD_COLOR); // actual final Board
+static vector <int> displayScreen(SCREEN_HEIGHT*SCREEN_WIDTH, BLANK_BOARD_COLOR);
+
 static bool gameOver = false;
 
-static int currentPiece = 0; //rand() % 7
+static int currentPiece = rand() % 7;
 static int currentRotation = 0;
-static int currentX = screenWidth/2 - 2;
+static int currentX = SCREEN_WIDTH/2 - 2;
 static int currentY = 1;
 
 
@@ -25,46 +36,10 @@ static int difficultySpeedCounter = 0;
 static int countTetromino = 0;
 static int score = 0;
 
+static pthread_t id1;
 
-
-static void init_tetrisTetromino(void){
-    /*
-    tetromino[0].append("..X.");
-    tetromino[0].append("..X.");
-    tetromino[0].append("..X.");
-    tetromino[0].append("..X.");
-
-    tetromino[1].append("..X.");
-    tetromino[1].append(".XX.");
-    tetromino[1].append(".X..");
-    tetromino[1].append("....");
-
-    tetromino[2].append(".X..");
-    tetromino[2].append(".XX.");
-    tetromino[2].append("..X.");
-    tetromino[2].append("....");
-
-    tetromino[3].append("....");
-    tetromino[3].append(".XX.");
-    tetromino[3].append(".XX.");
-    tetromino[3].append("....");
-
-    tetromino[4].append("..X.");
-    tetromino[4].append(".XX.");
-    tetromino[4].append("..X.");
-    tetromino[4].append("....");
-
-    tetromino[5].append("....");
-    tetromino[5].append(".XX.");
-    tetromino[5].append("..X.");
-    tetromino[5].append("..X.");
-
-    tetromino[6].append("...");
-    tetromino[6].append(".XX.");
-    tetromino[6].append(".X..");
-    tetromino[6].append(".X..");
-    */
-
+static void init_tetrisTetromino(void)
+{    
     tetromino[0].append("..X...X...X...X.");
     tetromino[1].append("..X..XX..X......");
     tetromino[2].append(".X...XX...X.....");
@@ -74,41 +49,22 @@ static void init_tetrisTetromino(void){
     tetromino[6].append("....XX..X...X..");
 }
 
-static void init_tetrisBoard(void){
-     // setting the board 
-    displayScreen = new char[screenHeight*screenWidth];
-    screenBuffer = new char[screenHeight*screenWidth];
-    for(int x = 0; x < screenWidth; x++){
-        for (int y = 0; y < screenHeight; y++){
-            if( x == 0 || x == screenWidth -1 || y == 0 || y == screenHeight - 1){
-                displayScreen[y*screenWidth + x] = '#';
-                screenBuffer[y*screenWidth + x] = '#';
+static void init_tetrisBoard(void)
+{
+    //Setting the board 
+    for(int x = 0; x < SCREEN_WIDTH; x++){
+        for (int y = 0; y < SCREEN_HEIGHT; y++){
+            if( x == 0 || x == SCREEN_WIDTH -1 || y == 0 || y == SCREEN_HEIGHT - 1){
+                displayScreen[y*SCREEN_WIDTH + x] = BORDER_COLOR;
+                screenBuffer[y*SCREEN_WIDTH + x] = BORDER_COLOR;
             }
-            else{
-                displayScreen[y*screenWidth + x] = ' ';
-                screenBuffer[y*screenWidth + x] = ' ';
-            }
-            //displayScreen[y*screenWidth + x] = ' ';
         }
         
-    }
-    for(int x = 1; x < screenWidth - 1; x++){
-        screenBuffer[(screenHeight-3)*screenWidth + x] = 'B';
-        screenBuffer[(screenHeight-4)*screenWidth + x] = 'C';
-        screenBuffer[(screenHeight-2)*screenWidth + x] = 'D';
-    }
-    screenBuffer[(screenHeight-3)*screenWidth + 6] = ' ';
-    screenBuffer[(screenHeight-4)*screenWidth + 6] = ' ';
-    screenBuffer[(screenHeight-2)*screenWidth + 6] = ' ';
-    screenBuffer[(screenHeight-2)*screenWidth + 3] = ' ';
-    
+    }    
 }
 
-static int getScore(void){
-    return score;
-}
-
-static int blockPosition(int px, int py, int rotate){
+static int blockPosition(int px, int py, int rotate)
+{
     switch (rotate % 4)
     {
     case 0: // 0 Degree
@@ -128,23 +84,20 @@ static int blockPosition(int px, int py, int rotate){
     }
 }
 
-static bool doesTetrominoFit(int numTetromino, int numRotation, int posX, int posY){
+static bool doesTetrominoFit(int numTetromino, int numRotation, int posX, int posY)
+{
     for(int x = 0; x < 4; x++){
         for(int y = 0; y < 4; y++){
             // Get index of tetromino's block
             int blockIndex = blockPosition(x, y, numRotation);
             // Get index of screen
-            int screenIndex = (posY + y) * screenWidth + (posX + x);
+            int screenIndex = (posY + y) * SCREEN_WIDTH + (posX + x);
 
             // check for out of bound
-            if(posX + x >= 0 && posX + x < screenWidth){
-                if(posY + y >= 0 && posY + y < screenHeight){
+            if(posX + x >= 0 && posX + x < SCREEN_WIDTH){
+                if(posY + y >= 0 && posY + y < SCREEN_HEIGHT){
                     // check collision
-                    //cout << "hey" << endl;
-                    if(tetromino[numTetromino][blockIndex] == 'X' && screenBuffer[screenIndex] != ' '){
-                        //cout << "hey bad news" << endl;
-                        //cout << screenBuffer[screenIndex] << endl;
-                        //cout << tetromino[numTetromino][blockIndex] << endl;
+                    if(tetromino[numTetromino][blockIndex] == 'X' && screenBuffer[screenIndex] != BLANK_BOARD_COLOR){
                         return false;
                     }
                 }
@@ -153,92 +106,97 @@ static bool doesTetrominoFit(int numTetromino, int numRotation, int posX, int po
     }
     return true;
 }
-
-static void moveTetrominoLeft(void){
-    //cout << "yes"<< endl; 
-    if (doesTetrominoFit(currentPiece, currentRotation, currentX - 1, currentY)){
-        //cout << posX << endl;
-        currentX -= 1;
-        //cout << currentX << endl; 
+// Copy actual board to display board 
+static void copyScreen(void)
+{
+    for(int x = 0; x < SCREEN_WIDTH; x++){
+        for (int y = 0; y < SCREEN_HEIGHT; y++){
+                displayScreen[y*SCREEN_WIDTH + x] = screenBuffer[y*SCREEN_WIDTH + x];
+        }   
     }
 }
-static void moveTetrominoRight(void){
+
+int getScore(void)
+{
+    return score;
+}
+
+void moveTetrominoLeft(void)
+{
+    if (doesTetrominoFit(currentPiece, currentRotation, currentX - 1, currentY))
+    {
+        currentX -= 1; 
+    }
+}
+
+void moveTetrominoRight(void)
+{
     if (doesTetrominoFit(currentPiece, currentRotation, currentX + 1, currentY)){
         currentX += 1; 
     }
 }
-static void moveTetrominoDown(void){
+void moveTetrominoDown(void)
+{
     if (doesTetrominoFit(currentPiece, currentRotation, currentX, currentY + 1)){
         currentY += 1; 
     }
 }
 
-static void rotateTetromino(void){
-    //cout << currentPiece << " " << currentRotation + 1 << " " << currentX << " " << currentY << endl;
+void rotateTetromino(void)
+{
     if (doesTetrominoFit(currentPiece, currentRotation + 1, currentX, currentY)){
         currentRotation = currentRotation + 1;
-        //cout << currentRotation << endl;
     }
 }
 
-static void copyScreen(void){
-    for(int x = 0; x < screenWidth; x++){
-        for (int y = 0; y < screenHeight; y++){
-                displayScreen[y*screenWidth + x] = screenBuffer[y*screenWidth + x];
-        }   
+// a copy of the game board
+vector <int> CopyBoard(void){
+    vector <int> copyScreen(SCREEN_HEIGHT*SCREEN_WIDTH, BLANK_BOARD_COLOR);
+    for(int i = 0; i < SCREEN_HEIGHT*SCREEN_WIDTH; i++){
+       copyScreen[i] = screenBuffer[i];
     }
+    return copyScreen;
 }
 
 /* Temporary fuctions for debugging */
-static void printScreen(void){
+/*
+static void printScreen(void)
+{
     cout << score << endl;
-    for(int x = 0; x < screenHeight; x++){
-        for (int y = 0; y < screenWidth; y++){
-            cout << displayScreen[x*screenWidth + y];
+    for(int x = 0; x < SCREEN_HEIGHT; x++){
+        for (int y = 0; y < SCREEN_WIDTH; y++){
+            cout << displayScreen[x*SCREEN_WIDTH + y];
             cout << " ";
         }
         cout << endl;
     }
 }
+*/
 
-
-int main(){
-
-    //cout << "Hello World" << endl;
+static void * StartGame(void * arg)
+{
 
     init_tetrisTetromino();
-
-
     init_tetrisBoard();
-
-    
 
     while(!gameOver){
 
-        // Timing =======================
-		this_thread::sleep_for(50ms); // Small Step = 1 Game Tick
+        /*                      *
+        *    Iteration Timing   *
+        *                       */
+		this_thread::sleep_for(50ms); 
         difficultySpeedCounter++;
         if(difficultySpeed == difficultySpeedCounter){
             movingDown = true;
-            //cout << "here" << endl;
         }
         else{
             movingDown = false;
         }
-
-        
-        // Input ========================
 		
-        // Game Logic ========================
-        //copyScreen();
-        //moveTetrominoLeft();
-        //moveTetrominoLeft();
-        //moveTetrominoLeft();
-       //rotateTetromino();
+        /*                *
+        *    Game Logic   *
+        *                */
         copyScreen();
-        //rotateTetromino();
-        //copyScreen();
-        //rotateTetromino();
         
         if(movingDown){
             difficultySpeedCounter = 0;
@@ -249,85 +207,81 @@ int main(){
                 countTetromino++;
                 if(countTetromino % 10 == 0){
                     if(difficultySpeed >= 10){
-                        difficultySpeed--; // the smaller difficultySpeed the faster the game moves down the harder game gets
+                        difficultySpeed--; // the smaller difficultySpeed, the faster the game moves down, the harder game gets
                     }
                 }
                 // lock the current block to buffer
                 for(int x = 0; x < 4; x++){
                     for (int y = 0; y < 4; y++){
                         if(tetromino[currentPiece][blockPosition(x, y, currentRotation)] == 'X'){
-                            screenBuffer[(currentY + y) * screenWidth + (currentX + x)] = currentPiece + 65;
+                            screenBuffer[(currentY + y) * SCREEN_WIDTH + (currentX + x)] = TetrominoColor[currentPiece%TetrominoColor.size()]; 
                         }
                     }
                 }
                 // check for horizontal lines
                 for(int y = 0; y < 4; y++){
-                    if(currentY + y < screenHeight - 1){
+                    if(currentY + y < SCREEN_HEIGHT - 1){
                         bool tetrominoLine = true;
-                        for(int x = 1; x < screenWidth - 1; x++){
-                            if(screenBuffer[(currentY + y) * screenWidth + x] == ' '){
+                        for(int x = 1; x < SCREEN_WIDTH - 1; x++){
+                            if(screenBuffer[(currentY + y) * SCREEN_WIDTH + x] == BLANK_BOARD_COLOR){
                                 tetrominoLine = false;
                             }
                         }
                         if(tetrominoLine){
                             score += 10;
-                            //////////////////////////////////////////////////////////////// DONT ERASE
-                            /*for(int x = 1; x < screenWidth - 1; x++){
-                               screenBuffer[(currentY + y) * screenWidth + x] = '=';
+                            /*for(int x = 1; x < SCREEN_WIDTH - 1; x++){
+                               screenBuffer[(currentY + y) * SCREEN_WIDTH + x] = BORDER_COLOR;
                             }*/
-                            for (int px = 1; px < screenWidth - 1; px++)
+                            for (int px = 1; px < SCREEN_WIDTH - 1; px++)
                             {
                                 for (int py = currentY + y; py > 1; py--){
-                                    screenBuffer[py * screenWidth + px] = screenBuffer[(py - 1) * screenWidth + px];
+                                    screenBuffer[py * SCREEN_WIDTH + px] = screenBuffer[(py - 1) * SCREEN_WIDTH + px];
                                 }
-                                    //screenBuffer[py * screenWidth + px] = screenBuffer[(py - 1) * screenWidth + px];
-                                screenBuffer[px] = ' ';
-                            }
-                        
-                            /*for(int x = 1; x < screenWidth - 1; x++){
-                                //screenBuffer[(currentY + y) * screenWidth + x] = screenBuffer[(currentY + y - 1) * screenWidth + x];
-                                //cout << currentY + y <<  "                                       \n\n\n\n\n" <<endl;
                                 
-                            }*/
-                           
+                            }    
                         }
                     }
                 }
                 copyScreen();
-                //copyScreen();
-                //printScreen();
-                //return 0;
                 // choose next block
                 score += 5;
                 currentPiece = rand() % 7;
                 currentRotation = 0;
-                currentX = screenWidth/2 - 1;
+                currentX = SCREEN_WIDTH/2 - 1;
                 currentY = 1;
 
-                // if block cant fit --> gameOver
+                // if block can't fit --> gameOver
                 if(!doesTetrominoFit(currentPiece, currentRotation, currentX, currentY)){
                     gameOver = true;
                 }
             }
         }
         
+        
         // put the tetris in screen
         for(int x = 0; x < 4; x++){
             for (int y = 0; y < 4; y++){
                 if(tetromino[currentPiece][blockPosition(x, y, currentRotation)] == 'X'){
-                    //cout << tetromino[currentPiece][blockPosition(x, y, currentRotation)] << endl;
-                    //cout << (currentY + y) * screenWidth + (currentX + x) << endl;
-                    displayScreen[(currentY + y) * screenWidth + (currentX + x)] = currentPiece + 65;
+                    displayScreen[(currentY + y) * SCREEN_WIDTH + (currentX + x)] = TetrominoColor[currentPiece%TetrominoColor.size()];
                 }
             }
         }
 
-        // print for testing
-        printScreen();
-        //break;
+        //Print Board for Testing
+        //printScreen();
     }
 
-    cout << "Final Score: " << score << " GG!" << endl;
- 
-    return 0;
+    //cout << "Final Score: " << score << " GG!" << endl;
+
+    return nullptr;
+}
+
+void game_thread_start(void)
+{ 
+    pthread_create(&id1, NULL, &StartGame, NULL);
+}
+
+void game_thread_stop(void)
+{
+    pthread_join(id1, NULL);
 }
