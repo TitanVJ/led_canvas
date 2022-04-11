@@ -283,6 +283,7 @@ void game_thread_start(void)
 
 void game_thread_stop(void)
 {
+    gameOver = true;
     pthread_join(id1, NULL);
 }
 
