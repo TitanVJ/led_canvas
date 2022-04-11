@@ -11,6 +11,7 @@ target_include_directories(Tetris
 target_link_libraries(Tetris
     led_display
     led_frame
+    controller
 )
 
 set_target_properties(Tetris

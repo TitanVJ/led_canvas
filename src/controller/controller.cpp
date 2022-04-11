@@ -107,7 +107,7 @@ int Joystick::get_axis_state()
 }
 
 
-input Joystick::check_joystick()
+int Joystick::check_joystick()
 {
     int axis;
 
@@ -117,36 +117,40 @@ input Joystick::check_joystick()
         case JS_EVENT_BUTTON:
             //insert case if button pressed
             printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
+            return event.number;
+            // switch (event.value)
+            // {
+            //     case 0:
+            //         inputHold = input::A;
+            //     case 1:
+            //         inputHold = input::B;
+            //     case 2:
+            //         inputHold = input::X;
+            //     case 3:
+            //         inputHold = input::Y;
+            //     case 4:
+            //         inputHold = input::LB;
+            //     case 5:
+            //         inputHold = input::RB;
+            // }
 
-            switch (event.number)
-            {
-                case 0:
-                    inputHold = input::A;
-                case 1:
-                    inputHold = input::B;
-                case 2:
-                    inputHold = input::X;
-                case 3:
-                    inputHold = input::Y;
-            }
-
-        case JS_EVENT_AXIS:
-            if (true)
-            {
+        // case JS_EVENT_AXIS:
+        //     if (true)
+        //     {
 
 
-                timeHold = time(0);
-                //insert case if joystick is moved
-                axis = this->get_axis_state();
-                if (axis < 3)
-                    printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
+        //         timeHold = time(0);
+        //         //insert case if joystick is moved
+        //         axis = this->get_axis_state();
+        //         if (axis < 3)
+        //             printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
 
-                //Please add cases for directional inputs
-            }
-            else
-            {
-                inputHold = input::Neutral;
-            }
+        //         //Please add cases for directional inputs
+        //     }
+        //     else
+        //     {
+        //         inputHold = input::Neutral;
+        //     }
 
             default:
                 /* Ignore init events. */
@@ -154,5 +158,6 @@ input Joystick::check_joystick()
     }
 
         fflush(stdout);
-        return inputHold;
+        // return inputHold;
+        return -1;
 }

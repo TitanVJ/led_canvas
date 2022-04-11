@@ -25,6 +25,8 @@ public:
 		B,
 		X,
 		Y,
+		LB, // btn 4
+		RB, // btn 5
 		Neutral
 	};
 
@@ -36,7 +38,7 @@ public:
 	uint8_t get_axis_count();
 	uint8_t get_button_count();
 	int get_axis_state();
-	input check_joystick();
+	int check_joystick();
 
 
 
