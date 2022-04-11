@@ -39,7 +39,7 @@ static int score = 0;
 static pthread_t id1;
 
 static void init_tetrisTetromino(void)
-{    
+{
     tetromino[0].append("..X...X...X...X.");
     tetromino[1].append("..X..XX..X......");
     tetromino[2].append(".X...XX...X.....");
@@ -51,7 +51,7 @@ static void init_tetrisTetromino(void)
 
 static void init_tetrisBoard(void)
 {
-    //Setting the board 
+    //Setting the board
     for(int x = 0; x < SCREEN_WIDTH; x++){
         for (int y = 0; y < SCREEN_HEIGHT; y++){
             if( x == 0 || x == SCREEN_WIDTH -1 || y == 0 || y == SCREEN_HEIGHT - 1){
@@ -59,8 +59,8 @@ static void init_tetrisBoard(void)
                 screenBuffer[y*SCREEN_WIDTH + x] = BORDER_COLOR;
             }
         }
-        
-    }    
+
+    }
 }
 
 static int blockPosition(int px, int py, int rotate)
@@ -68,17 +68,17 @@ static int blockPosition(int px, int py, int rotate)
     switch (rotate % 4)
     {
     case 0: // 0 Degree
-       return py * 4 + px;  
-    
+       return py * 4 + px;
+
     case 1: // 90 Degree
-       return 12 + py - (px * 4); 
+       return 12 + py - (px * 4);
 
     case 2: // 180 Degree
-       return 15 - (py * 4) - px;  
+       return 15 - (py * 4) - px;
 
     case 3: // 270 Degree
        return 3 - py + (px * 4);
-    
+
     default:
         return 0;
     }
@@ -106,13 +106,13 @@ static bool doesTetrominoFit(int numTetromino, int numRotation, int posX, int po
     }
     return true;
 }
-// Copy actual board to display board 
+// Copy actual board to display board
 static void copyScreen(void)
 {
     for(int x = 0; x < SCREEN_WIDTH; x++){
         for (int y = 0; y < SCREEN_HEIGHT; y++){
                 displayScreen[y*SCREEN_WIDTH + x] = screenBuffer[y*SCREEN_WIDTH + x];
-        }   
+        }
     }
 }
 
@@ -125,20 +125,20 @@ void moveTetrominoLeft(void)
 {
     if (doesTetrominoFit(currentPiece, currentRotation, currentX - 1, currentY))
     {
-        currentX -= 1; 
+        currentX -= 1;
     }
 }
 
 void moveTetrominoRight(void)
 {
     if (doesTetrominoFit(currentPiece, currentRotation, currentX + 1, currentY)){
-        currentX += 1; 
+        currentX += 1;
     }
 }
 void moveTetrominoDown(void)
 {
     if (doesTetrominoFit(currentPiece, currentRotation, currentX, currentY + 1)){
-        currentY += 1; 
+        currentY += 1;
     }
 }
 
@@ -184,7 +184,7 @@ static void * StartGame(void * arg)
         /*                      *
         *    Iteration Timing   *
         *                       */
-		this_thread::sleep_for(50ms); 
+		this_thread::sleep_for(50ms);
         difficultySpeedCounter++;
         if(difficultySpeed == difficultySpeedCounter){
             movingDown = true;
@@ -192,12 +192,12 @@ static void * StartGame(void * arg)
         else{
             movingDown = false;
         }
-		
+
         /*                *
         *    Game Logic   *
         *                */
         copyScreen();
-        
+
         if(movingDown){
             difficultySpeedCounter = 0;
             if(doesTetrominoFit(currentPiece, currentRotation, currentX, currentY + 1)){
@@ -214,7 +214,7 @@ static void * StartGame(void * arg)
                 for(int x = 0; x < 4; x++){
                     for (int y = 0; y < 4; y++){
                         if(tetromino[currentPiece][blockPosition(x, y, currentRotation)] == 'X'){
-                            screenBuffer[(currentY + y) * SCREEN_WIDTH + (currentX + x)] = TetrominoColor[currentPiece%TetrominoColor.size()]; 
+                            screenBuffer[(currentY + y) * SCREEN_WIDTH + (currentX + x)] = TetrominoColor[currentPiece%TetrominoColor.size()];
                         }
                     }
                 }
@@ -237,8 +237,8 @@ static void * StartGame(void * arg)
                                 for (int py = currentY + y; py > 1; py--){
                                     screenBuffer[py * SCREEN_WIDTH + px] = screenBuffer[(py - 1) * SCREEN_WIDTH + px];
                                 }
-                                
-                            }    
+
+                            }
                         }
                     }
                 }
@@ -256,8 +256,8 @@ static void * StartGame(void * arg)
                 }
             }
         }
-        
-        
+
+
         // put the tetris in screen
         for(int x = 0; x < 4; x++){
             for (int y = 0; y < 4; y++){
@@ -277,7 +277,7 @@ static void * StartGame(void * arg)
 }
 
 void game_thread_start(void)
-{ 
+{
     pthread_create(&id1, NULL, &StartGame, NULL);
 }
 
@@ -285,3 +285,5 @@ void game_thread_stop(void)
 {
     pthread_join(id1, NULL);
 }
+
+bool isGameOver(void) { return gameOver; }
