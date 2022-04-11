@@ -151,11 +151,11 @@ void rotateTetromino(void)
 
 // a copy of the game board
 vector <int> CopyBoard(void){
-    vector <int> copyScreen(SCREEN_HEIGHT*SCREEN_WIDTH, BLANK_BOARD_COLOR);
+    vector <int> copyGameBoard(SCREEN_HEIGHT*SCREEN_WIDTH, BLANK_BOARD_COLOR);
     for(int i = 0; i < SCREEN_HEIGHT*SCREEN_WIDTH; i++){
-       copyScreen[i] = screenBuffer[i];
+       copyGameBoard[i] = displayScreen[i];
     }
-    return copyScreen;
+    return copyGameBoard;
 }
 
 /* Temporary fuctions for debugging */
