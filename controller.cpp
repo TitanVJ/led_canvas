@@ -11,15 +11,18 @@
 #include "controller.h"
 #include <time.h>
 
-Joystick::Joystick() 
+using input = Joystick::input;
+
+Joystick::Joystick(): axes{ {0, 0}, {0, 0}, {0, 0}}
 {
     deviceRoute = "/dev/input/js0";
-    js = open(device, O_RDONLY);
+    js = open(deviceRoute, O_RDONLY);
     if (js == -1)
         perror("Could not open joystick");
 
-    struct axis_state hold[3] = { 0 };
-    axes = hold;
+
+    // struct axis_state hold[3] = { 0 };
+    // axes = hold;
 
     inputHold = input::Neutral;
     timeHold = time(0);
@@ -30,17 +33,20 @@ Joystick::Joystick()
 Joystick::Joystick(char * location)
 {
     deviceRoute = location;
-    js = open(device, O_RDONLY);
+    js = open(deviceRoute, O_RDONLY);
     if (js == -1)
         perror("Could not open joystick");
 
-    struct axis_state hold[3] = { 0 };
-    axes = hold;
+    // struct axis_state hold[3] = { 0 };
+    // axes = hold;
+    axes[0] = { 0, 0};
+    axes[1] = { 0, 0};
+    axes[2] = { 0, 0};
 
     inputHold = input::Neutral;
 }
 
-Joystick::~Joystick() 
+Joystick::~Joystick()
 {
     close(js);
 }
@@ -48,7 +54,7 @@ Joystick::~Joystick()
 
 int Joystick::read_event()
 {
-	ssize_t hold;
+	ssize_t hold, bytes;
 
 	hold = read(js, &event, sizeof(event));
 
@@ -60,7 +66,7 @@ int Joystick::read_event()
 }
 
 
-//Returns the number of axes on the controller. 
+//Returns the number of axes on the controller.
 uint8_t Joystick::get_axis_count()
 {
     uint8_t axesNum;
@@ -88,7 +94,7 @@ uint8_t Joystick::get_button_count()
 //x = even, y = odd
 int Joystick::get_axis_state()
 {
-    axis = event.number / 2;
+    int axis = event.number / 2;
 
     if (axis < 3)
     {
@@ -97,58 +103,56 @@ int Joystick::get_axis_state()
         else
             axes[axis].y = event.value;
     }
-
+    return axis;
 }
 
 
-input Joystick::check_joystick() 
+input Joystick::check_joystick()
 {
     int axis;
 
     this->read_event();
     switch (event.type)
     {
-    case JS_EVENT_BUTTON:
-        //insert case if button pressed 
-        printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
-        
-        switch (event.number)
-        {
-        case 0:
-            inputHold = input::A;
-        case 1:
-            inputHold = input::B;
-        case 2:
-            inputHold = input::X;
-        case 3:
-            inputHold = input::Y;
-        }
+        case JS_EVENT_BUTTON:
+            //insert case if button pressed
+            printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
 
-    case JS_EVENT_AXIS:
-        if (difftime(timeHold, time(0)) > 0.2) 
-        {
-            timeHold = time(0);
-            //insert case if joystick is moved
-            axis = this->get_axis_state();
-            if (axis < 3)
-                printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
+            switch (event.number)
+            {
+                case 0:
+                    inputHold = input::A;
+                case 1:
+                    inputHold = input::B;
+                case 2:
+                    inputHold = input::X;
+                case 3:
+                    inputHold = input::Y;
+            }
 
-            //Please add cases for directional inputs
-        }
-        else 
-        {
-            inputHold = input::Neutral;
-        }
-        
-        
+        case JS_EVENT_AXIS:
+            if (true)
+            {
 
-    default:
-        /* Ignore init events. */
-        inputHold = input::Neutral;
+
+                timeHold = time(0);
+                //insert case if joystick is moved
+                axis = this->get_axis_state();
+                if (axis < 3)
+                    printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
+
+                //Please add cases for directional inputs
+            }
+            else
+            {
+                inputHold = input::Neutral;
+            }
+
+            default:
+                /* Ignore init events. */
+                inputHold = input::Neutral;
     }
 
         fflush(stdout);
         return inputHold;
-    }
-
 }
