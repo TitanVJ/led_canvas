@@ -1,6 +1,6 @@
 add_executable(Tetris
     tetris.cpp
-    display.cpp
+    game.cpp
 )
 
 target_include_directories(Tetris

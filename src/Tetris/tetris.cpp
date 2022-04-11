@@ -1,20 +1,27 @@
 #include "game.hpp"
+#include "frame.h"
+#include "display.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <vector>
 
 bool running = false;
+using LED::Frame;
+using LED::Display;
+
+Display display{1, 2, true};
 
 void gameRunner() {
     while(running){
         // get the board
         std::vector<int> tetris_board = CopyBoard();
         std::vector< std::vector<int> > frame_data;
-        frame_data.reserve( SCREEN_HEIGHT );
+        frame_data.resize( SCREEN_WIDTH );
 
         auto tetris_itr = tetris_board.begin();
         auto frame_itr = frame_data.begin();
+
         while( tetris_itr != tetris_board.end() ){
             frame_itr->insert( frame_itr->end(), tetris_itr, tetris_itr + SCREEN_WIDTH );
             ++frame_itr;
@@ -22,11 +29,13 @@ void gameRunner() {
         }
 
         // create a frame
+        Frame frame{ frame_data };
+        // std::cout << frame << std::endl;
 
         // update the display
+        display.updateFrame( frame );
 
         // sleep
-
         std::this_thread::sleep_for( std::chrono::seconds(1) );
     }
 }
@@ -35,27 +44,19 @@ int main(){
     std::thread game_update_thread{gameRunner};
     game_thread_start();
 
-    // std::string s;
-    // while(true){
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
-    // // moveTetrominoDown();
+    std::string menu =  "Menu(Press the entry + the Enter key)\n"
+                        "\tR/r: Move piece to RIGHT\n"
+                        "\tD/d: Move piece DOWN\n"
+                        "\tL/l: Move piece LEFT\n"
+                        "\tRO/ro: ROTATE pice\n"
+                        "\tS/s: Get SCORE\n"
+                        "\tE/e: Exit the game\n";
 
-    // std::vector<int> board = CopyBoard();
-    //     int i = 1;
-    //     for(auto value : board) {
-    //         std::cout << value;
-    //         if(i %32 == 0){
-    //             std::cout << std::endl;
-    //         }
-    //         ++i;
-    //     }
-
-    // }
-
+    std::cout << menu << std::endl;
     // menu for inputs
     std::string usr_input;
     while( !isGameOver() && std::cin >> usr_input ) {
-
+        std::cout << menu << std::endl;
         // menu tree
         if( !usr_input.compare("D") || !usr_input.compare("d") ){
             moveTetrominoDown();
