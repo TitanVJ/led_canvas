@@ -8,7 +8,7 @@ target_include_directories(led_frame
 )
 
 target_link_libraries(led_frame
-    eigen
+    led_display
 )
 
 set_target_properties(led_frame
