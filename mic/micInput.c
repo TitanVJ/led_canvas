@@ -8,7 +8,7 @@
 
 #include "fileIO.h"
 
-#define A2D_FILE_VOLTAGE1 "/sys/bus/iio/devices/iio:device0/in_voltage3_raw"
+#define A2D_FILE_VOLTAGE1 "/sys/bus/iio/devices/iio:device0/in_voltage4_raw"
 #define MAX_A2D_READING 4095
 #define A2D_VOLTAGE_REF_V 1.8
 #define HISTORY_SIZE 500
@@ -58,7 +58,7 @@ static float average(int* buffer, int bufSize) {
     return sum / (float)bufSize;
 }
 
-static void checkLoudNoise() {
+static bool checkLoudNoise() {
     // loud sound detection heavily inspired from
     // https://opencoursehub.cs.sfu.ca/bfraser/grav-cms/cmpt433/links/files/2018-student-howtos/ElectretMicToDetectClappingOnBBG.pdf
     // and light sampler assignment
@@ -67,12 +67,17 @@ static void checkLoudNoise() {
         printf("****LOUD SOUND DETECTED****.\n");
         // function call to get game input
         aboveThreshold = true;
-        
+        return true;
     } else {
         if (difference < (THRESHOLD - HYSTERESIS)) {
             aboveThreshold = false;
         }
     }
+    return false;
+}
+
+int Mic_loudNoiseDetected() {
+    return aboveThreshold;
 }
 
 static void* micThread() {
@@ -85,7 +90,7 @@ static void* micThread() {
 
         addReadingToHistory(history, &history_head, &history_tail, HISTORY_SIZE, rawValue);
         addReadingToHistory(recent, &recent_head, &recent_tail, RECENT_SIZE, rawValue);
-        
+
         histAvg = WEIGHTING * rawValue + (1 - WEIGHTING) * histAvg;
         recentAvg = average(recent, RECENT_SIZE);
         printf("Mic reading: %d\n", rawValue);

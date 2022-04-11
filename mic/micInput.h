@@ -4,5 +4,6 @@
 // Mic is connected to AIN1
 void Mic_startListening(void);
 void Mic_stopListening(void);
+int Mic_loudNoiseDetected(void);
 
 #endif
