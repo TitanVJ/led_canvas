@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <linux/joystick.h>
 #include "controller.h"
+#include <time.h>
 
 Joystick::Joystick() 
 {
@@ -16,6 +17,13 @@ Joystick::Joystick()
     js = open(device, O_RDONLY);
     if (js == -1)
         perror("Could not open joystick");
+
+    struct axis_state hold[3] = { 0 };
+    axes = hold;
+
+    inputHold = input::Neutral;
+    timeHold = time(0);
+
 }
 
 
@@ -25,10 +33,20 @@ Joystick::Joystick(char * location)
     js = open(device, O_RDONLY);
     if (js == -1)
         perror("Could not open joystick");
+
+    struct axis_state hold[3] = { 0 };
+    axes = hold;
+
+    inputHold = input::Neutral;
+}
+
+Joystick::~Joystick() 
+{
+    close(js);
 }
 
 
-int Joystick::ReadEvent()
+int Joystick::read_event()
 {
 	ssize_t hold;
 
@@ -68,7 +86,7 @@ uint8_t Joystick::get_button_count()
 
 //Returns the axis that the event indicated.
 //x = even, y = odd
-void Joystick::set_axis_state()
+int Joystick::get_axis_state()
 {
     axis = event.number / 2;
 
@@ -83,30 +101,54 @@ void Joystick::set_axis_state()
 }
 
 
-void Joystick::runJoystick() 
+input Joystick::check_joystick() 
 {
-    while (this->read_event() == 0)
+    int axis;
+
+    this->read_event();
+    switch (event.type)
     {
-        switch (event.type)
+    case JS_EVENT_BUTTON:
+        //insert case if button pressed 
+        printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
+        
+        switch (event.number)
         {
-        case JS_EVENT_BUTTON:
-            //insert case if button pressed 
-            printf("Button %u %s\n", event.number, event.value ? "pressed" : "released");
-            break;
-        case JS_EVENT_AXIS:
-            //insert case if joystick is moved
-            this->set_axis_state();
-            if (axis < 3)
-                printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
-            break;
-        default:
-            /* Ignore init events. */
-            break;
+        case 0:
+            inputHold = input::A;
+        case 1:
+            inputHold = input::B;
+        case 2:
+            inputHold = input::X;
+        case 3:
+            inputHold = input::Y;
         }
 
-        fflush(stdout);
+    case JS_EVENT_AXIS:
+        if (difftime(timeHold, time(0)) > 0.2) 
+        {
+            timeHold = time(0);
+            //insert case if joystick is moved
+            axis = this->get_axis_state();
+            if (axis < 3)
+                printf("Axis %zu at (%6d, %6d)\n", axis, axes[axis].x, axes[axis].y);
+
+            //Please add cases for directional inputs
+        }
+        else 
+        {
+            inputHold = input::Neutral;
+        }
+        
+        
+
+    default:
+        /* Ignore init events. */
+        inputHold = input::Neutral;
     }
 
-    close(js);
-    return 0;
+        fflush(stdout);
+        return inputHold;
+    }
+
 }

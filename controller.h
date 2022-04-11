@@ -12,27 +12,41 @@ public:
 		short x, y;
 	};
 
+
+	// Adapted from SDL_GameControllerButton
+	enum class input
+	{
+		Up,
+		Down,
+		Left,
+		Right,
+		A,
+		B,
+		X,
+		Y,
+		Neutral
+	};
+
 	Joystick();
 	Joystick(char* location);
+	~Joystick();
 	
-	int ReadEvent();
+	int read_event();
 	uint8_t get_axis_count();
 	uint8_t get_button_count();
-	void set_axis_state();
-	void runJoystick();
+	int get_axis_state();
+	input check_joystick();
+	
 
 
 private:
-	struct Controller
-	{
-		//directory where the device is connected (USB port for now!)
-		const char deviceRoute;
-		int js;
-		Button pressedButton;
-		struct js_event event;
-		struct axis_state axes[3] = { 0 };
-		int axis;
-	};
+	const char deviceRoute;
+	int js;
+	struct js_event event;
+	struct axis_state axes;
+	input inputHold;
+	time_t timeHold;
+	
 
 };
 

@@ -11,6 +11,12 @@
 
 int main(int argc, char* argv[]) {
     Joystick test;
-    test.runJoystick();
+    input result;
+    result = test.check_joystick();
+    cout << result << "\n";
+    result = test.check_joystick();
+    cout << result << "\n";
+    result = test.check_joystick();
+    cout << result << "\n";
     return(0);
 }
