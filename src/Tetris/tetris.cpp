@@ -31,7 +31,6 @@ void gameRunner() {
 
         // create a frame
         Frame frame{ frame_data };
-        // std::cout << frame << std::endl;
 
         // update the display
         display.updateFrame( frame );
@@ -44,15 +43,9 @@ int main(){
     running = true;
     std::thread game_update_thread{gameRunner};
     Joystick input{};
+    // Mic_startListening();
     game_thread_start();
 
-    // std::string menu =  "Menu(Press the entry + the Enter key)\n"
-    //                     "\tR/r: Move piece to RIGHT\n"
-    //                     "\tD/d: Move piece DOWN\n"
-    //                     "\tL/l: Move piece LEFT\n"
-    //                     "\tRO/ro: ROTATE pice\n"
-    //                     "\tS/s: Get SCORE\n"
-    //                     "\tE/e: Exit the game\n";
 
         std::string menu =  "Commands\n"
                         "\tB: Move piece to RIGHT\n"
@@ -61,11 +54,9 @@ int main(){
                         "\tY: ROTATE pice\n"
                         "\tL-Bumper: Get SCORE\n"
                         "\tR-bumper: Exit the game\n";
-    // std::cout << menu << std::endl;
-    // menu for inputs
-    // std::string usr_input;
+
+    std::cout << menu << std::endl;
     while( true ) {
-        std::cout << menu << std::endl;
         // menu tree
         int r = (int) input.check_joystick();
 
@@ -87,25 +78,6 @@ int main(){
         } else if( r == 5 ) {
             break;
         }
-
-        // if( !usr_input.compare("D") || !usr_input.compare("d") ){
-        //     moveTetrominoDown();
-
-        // } else if( !usr_input.compare("L") || !usr_input.compare("l")  ) {
-        //     moveTetrominoLeft();
-
-        // } else if( !usr_input.compare("R") || !usr_input.compare("r")  ) {
-        //     moveTetrominoRight();
-
-        // } else if( !usr_input.compare("RO") || !usr_input.compare("ro")  ) {
-        //     rotateTetromino();
-
-        // } else if( !usr_input.compare("S") || !usr_input.compare("s")  ) {
-        //     std::cout << "Current score: " << getScore() << std::endl;
-
-        // } else if( !usr_input.compare("E") || !usr_input.compare("e")  ) {
-        //     break;
-        // }
     }
 
     game_thread_stop();

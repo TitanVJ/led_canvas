@@ -26,12 +26,12 @@ static int recent_tail = 0;
 
 
 #define WEIGHTING .999
-#define THRESHOLD 500
+#define THRESHOLD 20
 #define HYSTERESIS 100
 static double histAvg = 0;
 static double recentAvg = 0;
 static bool recentFull = false;
-static bool aboveThreshold = false;
+static int aboveThreshold = 0;
 
 // circular buffer implementation taken from Brian's as2 solution
 static void addReadingToHistory(int* buffer, int* head, int* tail, int bufSize, float reading) {
@@ -66,11 +66,11 @@ static bool checkLoudNoise() {
     if (difference > THRESHOLD) {
         printf("****LOUD SOUND DETECTED****.\n");
         // function call to get game input
-        aboveThreshold = true;
+        aboveThreshold = 1;
         return true;
     } else {
         if (difference < (THRESHOLD - HYSTERESIS)) {
-            aboveThreshold = false;
+            aboveThreshold = 10;
         }
     }
     return false;

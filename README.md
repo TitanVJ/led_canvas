@@ -24,5 +24,6 @@ make
 The binaries will be installed at `~/cmpt433/public/myApps`.
 
 The following binaries are built:
- 1. `SFU` : This will display the SFU logo most recently seen on [r/place](https://www.reddit.com/r/place)
- 1. `Tetris` : This will launch a game of Tetris which is displayed on the LED matrix and controlled from the command line
+ 1. `SFU` : This will display the SFU logo most recently seen on [r/place](https://www.reddit.com/r/place).
+ 1. `Tetris` : This will launch a game of Tetris which is displayed on the LED matrix and controlled with with an Xbox controller plugged into the BBG usb port.
+ 1. `Mic`: This will output readings from the A2D mic input and will detect loud sounds.

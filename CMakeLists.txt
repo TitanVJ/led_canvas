@@ -16,6 +16,7 @@ set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(PACKAGE_BUGREPORT "vbakhshi@sfu.ca")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_FLAGS "-Wall -pthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fcompare-debug-second -fno-rtti -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG
     "-O0 -g -fsanitize=address,undefined -fno-omit-frame-pointer" # -O0 disables all optimizations, faster build but slower binary than release
