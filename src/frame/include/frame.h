@@ -18,10 +18,11 @@ namespace LED {
     class Frame {
         public:
 
+            // default frame of all black
             Frame(): frameBuffer{HEIGHT, std::vector<int>{WIDTH, BLACK}} { }
-
+            // initialize a frame with all the same `colour` values
             Frame(int colour): frameBuffer{HEIGHT, std::vector<int>{WIDTH, colour}} { }
-
+            // construct a frame from an existing 2d vector of ints
             Frame(const std::vector<std::vector<int>>& frame_data) { frameBuffer.assign( frame_data.begin(), frame_data.end() ); };
             // Frame(std::string_view file_path);
 
@@ -30,7 +31,7 @@ namespace LED {
 
             ~Frame() = default;
 
-            // basic indexing function
+            // sets pixel to `colour` at the given `row` and `colomn`
             void at(size_t row, size_t column, int colour);
             // bool set(int row, int column, Colour colour);
 
@@ -50,7 +51,8 @@ namespace LED {
             // // place a 1d sprite line either horizonally or vertically
             // bool place1dAt(int row, int column, const std::vector< Colour >& sprite, bool horizontal);
 
-            // shifting functions, up, down, left, right, diagonal-left-up...etc
+            // These function will shift the frame up, down, left, right. Back pixels of the shift are set to black.
+            // Note: These methods are destructive. There is no getting back pixels that have been shifted out of frame.
             void shiftUp(size_t shift_by);
             void shiftDown(size_t shift_by);
             void shiftLeft(size_t shift_by);
@@ -60,7 +62,7 @@ namespace LED {
 
             // rotation and flipping
 
-            // text
+            // Prints formatted contents of the frame
             void print();
 
             /**

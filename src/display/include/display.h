@@ -21,7 +21,9 @@ namespace LED {
             Display(int num_chains, int num_stack, bool serpentine);
             ~Display();
 
+            // updates the display output from a Frame obj `frame`
             void updateFrame( Frame frame);
+            // updates the display output from a 2d vector of ints `frame`
             void updateFrame( std::vector<std::vector<int>>& frame);
 
         private:
