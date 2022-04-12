@@ -9,8 +9,6 @@
 #include "fileIO.h"
 
 #define A2D_FILE_VOLTAGE1 "/sys/bus/iio/devices/iio:device0/in_voltage4_raw"
-#define MAX_A2D_READING 4095
-#define A2D_VOLTAGE_REF_V 1.8
 #define HISTORY_SIZE 500
 #define RECENT_SIZE 30
 
@@ -26,14 +24,13 @@ static int recent_tail = 0;
 
 
 #define WEIGHTING .999
-#define THRESHOLD 20
+#define THRESHOLD 500
 #define HYSTERESIS 100
 static double histAvg = 0;
 static double recentAvg = 0;
-static bool recentFull = false;
 static int aboveThreshold = 0;
 
-// circular buffer implementation taken from Brian's as2 solution
+// circular buffer implementation based on Brian's as2 solution
 static void addReadingToHistory(int* buffer, int* head, int* tail, int bufSize, float reading) {
     buffer[*tail] = reading;
     *tail = (*tail + 1) % bufSize;
@@ -58,16 +55,15 @@ static float average(int* buffer, int bufSize) {
     return sum / (float)bufSize;
 }
 
-static bool checkLoudNoise() {
+static void checkLoudNoise() {
     // loud sound detection heavily inspired from
     // https://opencoursehub.cs.sfu.ca/bfraser/grav-cms/cmpt433/links/files/2018-student-howtos/ElectretMicToDetectClappingOnBBG.pdf
     // and light sampler assignment
     int difference = recentAvg - histAvg;
     if (difference > THRESHOLD) {
         printf("****LOUD SOUND DETECTED****.\n");
-        // function call to get game input
         aboveThreshold = 1;
-        return true;
+
     } else {
         if (difference < (THRESHOLD - HYSTERESIS)) {
             aboveThreshold = 10;
