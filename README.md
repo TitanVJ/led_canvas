@@ -1,4 +1,4 @@
-# 433-project
+# LED Canvas | A project for CMPT 433 Embedded Systems
 
 ## Building
 
